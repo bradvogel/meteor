@@ -91,6 +91,12 @@ cordova.buildPlatformRunners = function (localPath, platforms, options) {
   return runners;
 };
 
+// Returns the cordovaDependencies of the Cordova arch from a star json.
+cordova.getCordovaDependenciesFromStar = function (star) {
+  var cordovaProgram = _.findWhere(star.programs, { arch: webArchName });
+  return cordovaProgram.cordovaDependencies;
+};
+
 // packages - list of strings
 cordova.filterPackages = function (packages) {
 // We hard-code the 'cordova' and 'platform' namespaces
@@ -587,7 +593,7 @@ var ensureCordovaPlugins = function (localPath, options) {
     // XXX code copied from buildCordova
     var bundlePath = path.join(localPath, 'build-tar');
     var bundle = getBundle(bundlePath, [webArchName], options);
-    plugins = getCordovaDependenciesFromStar(bundle.starManifest);
+    plugins = cordova.getCordovaDependenciesFromStar(bundle.starManifest);
     files.rm_recursive(bundlePath);
   }
   // XXX the project-level cordova plugins deps override the package-level ones
@@ -720,12 +726,6 @@ var localPluginsPathFromCordovaPath = function (cordovaPath) {
 // This is populated only in consumeControlFile.
 var pluginsConfiguration = {};
 
-// Returns the cordovaDependencies of the Cordova arch from a star json.
-var getCordovaDependenciesFromStar = function (star) {
-  var cordovaProgram = _.findWhere(star.programs, { arch: webArchName });
-  return cordovaProgram.cordovaDependencies;
-};
-
 // Build a Cordova project, creating a Cordova project if necessary.
 var buildCordova = function (localPath, buildCommand, options) {
   verboseLog('Building the cordova build project');
@@ -751,7 +751,7 @@ var buildCordova = function (localPath, buildCommand, options) {
 
   ensureCordovaPlatforms(localPath);
   ensureCordovaPlugins(localPath, _.extend({}, options, {
-    packagePlugins: getCordovaDependenciesFromStar(bundle.starManifest)
+    packagePlugins: cordova.getCordovaDependenciesFromStar(bundle.starManifest)
   }));
 
   // XXX hack, copy files from app folder one level up
@@ -2448,5 +2448,3 @@ main.registerCommand({
 
   return 0;
 });
-
-
